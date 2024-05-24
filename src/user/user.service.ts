@@ -1,18 +1,51 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { DatabaseService } from '../infrastructure/database/database.service';
+import { User, Prisma } from '@prisma/client';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 @Injectable()
 export class UserService {
-    constructor() {}
+    constructor(private databaseService: DatabaseService) { }
 
-    addUser(email: string): Promise<void> {
-        throw new NotImplementedException();
+    async addUser(email: string): Promise<User> {
+        const user = await this.databaseService.user.findUnique({
+            where: {
+                email: email,
+            },
+        });
+
+        if (user) {
+            throw new HttpException('User already exists', HttpStatus.CONFLICT);
+        }
+
+        return this.databaseService.user.create({
+            data: {
+                email,
+            },
+        });
     }
 
-    getUser(email: string): Promise<unknown> {
-        throw new NotImplementedException();
+    getUser(email: string): Promise<User> {
+        return this.databaseService.user.findUnique({
+            where: {
+                email: email,
+            },
+        });
     }
 
-    resetData(): Promise<void> {
-        throw new NotImplementedException();
+    getUserById(id: number): Promise<User> {
+        return this.databaseService.user.findUnique({
+            where: {
+                id: parseInt(id.toString()),
+            },
+        });
+    }
+
+    getUsers(): Promise<User[]> {
+        return this.databaseService.user.findMany();
+    }
+
+    resetData(): Promise<Prisma.BatchPayload> {
+        return this.databaseService.user.deleteMany();
     }
 }

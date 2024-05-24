@@ -1,0 +1,2 @@
+ALTER TABLE "Task" DROP COLUMN "title",
+ADD COLUMN     "name" TEXT NOT NULL;

@@ -1,22 +1,57 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Task, Prisma } from '@prisma/client';
+import { DatabaseService } from '../infrastructure/database/database.service';
 
 @Injectable()
 export class TaskService {
-    constructor() {}
+    constructor(
+        private databaseService: DatabaseService,
+    ) { }
 
-    addTask(name: string, userId: string, priority: number): Promise<void> {
-        throw new NotImplementedException();
+    async addTask(
+        name: string,
+        userId: number,
+        priority: number,
+    ): Promise<Task> {
+        const task = Prisma.validator<Prisma.TaskCreateInput>()({
+            name: name,
+            user: {
+                connect: {
+                    id: parseInt(userId.toString()),
+                },
+            },
+            priority: parseInt(priority.toString()),
+        });
+
+        return this.databaseService.task.create({
+            data: task,
+        });
     }
 
-    getTaskByName(name: string): Promise<unknown> {
-        throw new NotImplementedException();
+    async getTaskByName(name: string, userId: number): Promise<Task> {
+        const whereNameIs = Prisma.validator<Prisma.TaskWhereInput>()({
+            name: name,
+            AND: {
+                userId: parseInt(userId.toString()),
+            },
+        });
+
+        return this.databaseService.task.findFirst({
+            where: whereNameIs,
+        });
     }
 
-    getUserTasks(userId: string): Promise<unknown[]> {
-        throw new NotImplementedException();
+    async getUserTasks(userId: number): Promise<Task[]> {
+        const whereUserIdIs = Prisma.validator<Prisma.TaskWhereInput>()({
+            userId: parseInt(userId.toString()),
+        });
+
+        return this.databaseService.task.findMany({
+            where: whereUserIdIs,
+        });
     }
 
-    resetData(): Promise<void> {
-        throw new NotImplementedException();
+    async resetData(): Promise<Prisma.BatchPayload> {
+        return this.databaseService.task.deleteMany();
     }
 }

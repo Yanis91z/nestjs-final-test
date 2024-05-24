@@ -129,9 +129,7 @@ describe('TaskController', () => {
 
                 expect(response.status).toBe(201);
 
-                const task = (await taskService.getTaskByName(
-                    payload.name,
-                )) as any;
+                const task = (await taskService.getTaskByName(payload.name, payload.userId)) as any;
 
                 expect(task).toBeDefined();
                 expect(task.name).toBe(payload.name);
